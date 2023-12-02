@@ -1,4 +1,5 @@
 use std::io;
+use std::time::Duration;
 
 use crossterm::{
     event::{self, Event, KeyCode, KeyEventKind},
@@ -51,7 +52,7 @@ impl DaysList<'_> {
         self.state.select(Some(i));
     }
 
-    fn run_solvers(&mut self) -> (&'static str, Vec<(usize, AdventOfCodeResult)>) {
+    fn run_selected_day(&mut self) -> (&'static str, Vec<(usize, AdventOfCodeResult)>) {
         let day_index = self.state.selected().unwrap();
         let day_name = self
             .day_to_solver_functions
@@ -59,10 +60,10 @@ impl DaysList<'_> {
             .rev()
             .nth(day_index)
             .unwrap();
-        let solvers = self.day_to_solver_functions.get(day_name).unwrap();
+        let solver_functions = self.day_to_solver_functions.get(day_name).unwrap();
         return (
             day_name,
-            solvers
+            solver_functions
                 .iter()
                 .enumerate()
                 .map(|(index, solve_function)| {
@@ -82,6 +83,26 @@ impl App<'_> {
         App {
             days_list: DaysList::with_items(day_to_solve_functions),
         }
+    }
+
+    fn run_all_days(self) -> Vec<(String, Vec<(usize, AdventOfCodeResult)>)> {
+        return self
+            .days_list
+            .day_to_solver_functions
+            .entries()
+            .map(|(day, solver_functions)| {
+                return (
+                    day.to_string(),
+                    solver_functions
+                        .iter()
+                        .enumerate()
+                        .map(|(part_index, solve_function)| {
+                            return (part_index, solve_function());
+                        })
+                        .collect::<Vec<(usize, AdventOfCodeResult)>>(),
+                );
+            })
+            .collect::<Vec<(String, Vec<(usize, AdventOfCodeResult)>)>>();
     }
 }
 
@@ -111,8 +132,19 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Result<(
             if key.kind == KeyEventKind::Press {
                 match key.code {
                     KeyCode::Char('q') => return Ok(()),
+                    KeyCode::Char('a') => {
+                        // Benchmark all days
+                        let start = std::time::Instant::now();
+                        let all_results = app.run_all_days();
+                        let end = std::time::Instant::now();
+                        let duration = end - start;
+                        terminal.clear()?;
+                        terminal.draw(|f| all_tests_results_ui(f, all_results, duration))?;
+                        event::read()?;
+                        return Ok(());
+                    }
                     KeyCode::Enter => {
-                        let (day, results) = app.days_list.run_solvers();
+                        let (day, results) = app.days_list.run_selected_day();
                         terminal.clear()?;
                         terminal.draw(|f| results_ui(f, results, day))?;
                         event::read()?;
@@ -157,6 +189,55 @@ fn select_day_ui(f: &mut Frame, app: &mut App) {
     f.render_stateful_widget(items, chunk, &mut app.days_list.state);
 }
 
+fn all_tests_results_ui(
+    f: &mut Frame,
+    all_results: Vec<(String, Vec<(usize, AdventOfCodeResult)>)>,
+    duration: Duration,
+) {
+    let chunk = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([Constraint::Percentage(100)])
+        .split(f.size())[0];
+
+    let mut items: Vec<ListItem> = all_results
+        .iter()
+        .map(|(day, results)| {
+            let mut lines = Vec::new();
+            lines.push(format!("{}", day).bold().fg(Color::Black).into());
+            for (part_index, result) in results.iter() {
+                let result_string = match result {
+                    Ok(result) => format!("{}", result),
+                    Err(error) => format!("{}", error),
+                };
+                let result_fg = match result {
+                    Ok(_) => Color::Green,
+                    Err(_) => Color::Red,
+                };
+                lines.push(
+                    format!("Part {}: {}", part_index + 1, result_string)
+                        .bold()
+                        .fg(result_fg)
+                        .into(),
+                );
+            }
+            return ListItem::new(lines).style(Style::default().fg(Color::Black).bg(Color::White));
+        })
+        .collect();
+    let duration_string = format!("Total duration: {}ms", duration.as_millis());
+    items.push(
+        ListItem::new(vec![duration_string.bold().fg(Color::Black).into()])
+            .style(Style::default().fg(Color::Black).bg(Color::White)),
+    );
+
+    let items = List::new(items).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .title("Results for all days"),
+    );
+
+    f.render_widget(items, chunk);
+}
+
 fn results_ui(f: &mut Frame, results: Vec<(usize, AdventOfCodeResult)>, day: &str) {
     let chunk = Layout::default()
         .direction(Direction::Horizontal)
@@ -185,18 +266,11 @@ fn results_ui(f: &mut Frame, results: Vec<(usize, AdventOfCodeResult)>, day: &st
         })
         .collect();
 
-    let items = List::new(items)
-        .block(
-            Block::default()
-                .borders(Borders::ALL)
-                .title(format!("Results for {}", day)),
-        )
-        .highlight_style(
-            Style::default()
-                .bg(Color::LightGreen)
-                .add_modifier(Modifier::BOLD),
-        )
-        .highlight_symbol(">> ");
+    let items = List::new(items).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .title(format!("Results for {}", day)),
+    );
 
     f.render_widget(items, chunk);
 }
