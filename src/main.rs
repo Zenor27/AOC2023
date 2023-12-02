@@ -1,14 +1,19 @@
 use std::collections::HashMap;
 use std::fs;
 
-use crate::aoc2023::day1;
+use crate::aoc2023::{day1, day2};
 
 mod aoc2023;
 
+type Solver = fn(String) -> u32;
+type Solvers = [Solver; 2];
+
 fn main() {
     let day_to_solvers = HashMap::from([
-        ("day1", [day1::solve1, day1::solve2])
-    ]);
+        ("day1", [day1::solve1, day1::solve2] as Solvers),
+        ("day2", [day2::solve1, day2::solve2] as Solvers),
+    ]
+    );
 
     let args: Vec<String> = std::env::args().collect();
     let day = args.get(1).expect("Please provide a day to solve");
