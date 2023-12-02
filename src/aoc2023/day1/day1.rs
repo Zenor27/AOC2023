@@ -4,10 +4,7 @@ pub(super) fn _solve1(input: String) -> u32 {
     return input
         .lines()
         .map(|line| {
-            let chars = line
-                .chars()
-                .filter(|c| c.is_digit(10))
-                .map(|c| c.to_digit(10).unwrap());
+            let chars = line.chars().filter_map(|c| c.to_digit(10));
             let first = chars.clone().next();
             let last = chars.clone().last();
             return first.or(last).unwrap() * 10 + last.or(first).unwrap();

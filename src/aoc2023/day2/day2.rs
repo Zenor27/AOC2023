@@ -83,12 +83,16 @@ fn parse_games(input: String) -> Vec<Game> {
 pub(super) fn _solve1(input: String) -> u32 {
     return parse_games(input)
         .iter()
-        .filter(|game| {
-            game.max_blue_count() <= 14
+        .filter_map(|game| {
+            return if game.max_blue_count() <= 14
                 && game.max_green_count() <= 13
                 && game.max_red_count() <= 12
+            {
+                Some(game.id)
+            } else {
+                None
+            };
         })
-        .map(|game| game.id)
         .sum::<u32>();
 }
 
