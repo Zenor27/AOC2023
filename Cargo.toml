@@ -5,3 +5,4 @@ edition = "2021"
 authors = ["Antoine Montes"]
 
 [dependencies]
+phf = { version = "0.11.2", features = ["macros"] }
