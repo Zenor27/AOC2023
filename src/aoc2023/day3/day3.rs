@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
-type Position = (usize, usize);
+use glam::IVec2;
 
-fn get_number_to_positions(input: String) -> HashMap<u32, Vec<Position>> {
-    let mut number_to_positions: HashMap<u32, Vec<Position>> = HashMap::new();
+fn get_number_to_positions(input: &str) -> HashMap<u32, Vec<IVec2>> {
+    let mut number_to_positions: HashMap<u32, Vec<IVec2>> = HashMap::new();
     let mut add_number_positions = |number: u32, x: usize, y: usize| {
         if number == 0 {
             return;
@@ -11,7 +11,7 @@ fn get_number_to_positions(input: String) -> HashMap<u32, Vec<Position>> {
         let indexes = number_to_positions.entry(number).or_default();
         let number_len = number.to_string().len();
         for i in 0..number_len {
-            indexes.push((x - number_len + i, y));
+            indexes.push(IVec2::new((x - number_len + i) as i32, y as i32));
         }
     };
     input.lines().enumerate().for_each(|(y, line)| {
@@ -32,32 +32,26 @@ fn get_number_to_positions(input: String) -> HashMap<u32, Vec<Position>> {
     number_to_positions
 }
 
-fn is_adjacent(positions: &[Position], x: usize, y: usize) -> bool {
-    [
-        (x - 1, y - 1),
-        (x, y - 1),
-        (x + 1, y - 1),
-        (x - 1, y),
-        (x + 1, y),
-        (x - 1, y + 1),
-        (x, y + 1),
-        (x + 1, y + 1),
-    ]
-    .iter()
-    .any(|position| positions.contains(position))
+fn is_adjacent(positions: &[IVec2], position: &IVec2) -> bool {
+    positions
+        .iter()
+        .any(|p| (p.x - position.x).abs() == 1 && (p.y - position.y).abs() == 1)
+        || positions
+            .iter()
+            .any(|p| (p.x - position.x).abs() + (p.y - position.y).abs() == 1)
 }
 
 fn get_adjacent_numbers(
-    number_to_positions: &HashMap<u32, Vec<Position>>,
-    symbols_positions: &[Position],
+    number_to_positions: &HashMap<u32, Vec<IVec2>>,
+    symbols_positions: &[IVec2],
 ) -> Vec<Vec<u32>> {
     symbols_positions
         .iter()
-        .map(|(x, y)| {
+        .map(|position| {
             number_to_positions
                 .iter()
                 .filter_map(move |(number, positions)| {
-                    if is_adjacent(positions, *x, *y) {
+                    if is_adjacent(positions, position) {
                         Some(*number)
                     } else {
                         None
@@ -75,15 +69,15 @@ pub(super) fn _solve1(input: String) -> u32 {
         .flat_map(|(y, line)| {
             line.chars().enumerate().filter_map(move |(x, c)| {
                 if c != '.' && !c.is_ascii_digit() {
-                    Some((x, y))
+                    Some(IVec2::new(x as i32, y as i32))
                 } else {
                     None
                 }
             })
         })
-        .collect::<Vec<Position>>();
+        .collect::<Vec<IVec2>>();
 
-    let number_to_positions = get_number_to_positions(input);
+    let number_to_positions = get_number_to_positions(&input);
     return get_adjacent_numbers(&number_to_positions, &symbols_positions)
         .iter()
         .flatten()
@@ -91,34 +85,27 @@ pub(super) fn _solve1(input: String) -> u32 {
 }
 
 pub(super) fn _solve2(input: String) -> u32 {
+    let number_to_positions = get_number_to_positions(&input);
     let gear_positions = input
         .lines()
         .enumerate()
         .flat_map(|(y, line)| {
-            line.chars().enumerate().filter_map(
-                move |(x, c)| {
-                    if c == '*' {
-                        Some((x, y))
-                    } else {
-                        None
-                    }
-                },
-            )
+            line.chars().enumerate().filter_map(move |(x, c)| {
+                if c == '*' {
+                    Some(IVec2::new(x as i32, y as i32))
+                } else {
+                    None
+                }
+            })
         })
-        .collect::<Vec<Position>>();
-
-    let number_to_positions = get_number_to_positions(input);
-
-    let gear_positions: Vec<_> = gear_positions
-        .into_iter()
-        .filter(|(x, y)| {
+        .filter(|position| {
             number_to_positions
                 .values()
-                .filter(|positions| is_adjacent(positions, *x, *y))
+                .filter(|positions| is_adjacent(positions, position))
                 .count()
                 >= 2
         })
-        .collect();
+        .collect::<Vec<IVec2>>();
 
     get_adjacent_numbers(&number_to_positions, &gear_positions)
         .into_iter()
