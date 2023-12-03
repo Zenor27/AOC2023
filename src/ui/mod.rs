@@ -66,9 +66,7 @@ impl DaysList<'_> {
             solver_functions
                 .iter()
                 .enumerate()
-                .map(|(index, solve_function)| {
-                    return (index, solve_function());
-                })
+                .map(|(index, solve_function)| (index, solve_function()))
                 .collect::<Vec<(usize, AdventOfCodeResult)>>(),
         );
     }
@@ -96,9 +94,7 @@ impl App<'_> {
                     solver_functions
                         .iter()
                         .enumerate()
-                        .map(|(part_index, solve_function)| {
-                            return (part_index, solve_function());
-                        })
+                        .map(|(part_index, solve_function)| (part_index, solve_function()))
                         .collect::<Vec<(usize, AdventOfCodeResult)>>(),
                 );
             })
@@ -171,8 +167,7 @@ fn select_day_ui(f: &mut Frame, app: &mut App) {
         .keys()
         .rev()
         .map(|day_name| {
-            let mut lines = Vec::new();
-            lines.push(format!("{}", day_name).bold().fg(Color::Black).into());
+            let lines = vec![day_name.to_string().bold().fg(Color::Black).into()];
             return ListItem::new(lines).style(Style::default().fg(Color::Black).bg(Color::White));
         })
         .collect();
@@ -203,7 +198,7 @@ fn all_tests_results_ui(
         .iter()
         .map(|(day, results)| {
             let mut lines = Vec::new();
-            lines.push(format!("{}", day).bold().fg(Color::Black).into());
+            lines.push(day.to_string().bold().fg(Color::Black).into());
             for (part_index, result) in results.iter() {
                 let result_string = match result {
                     Ok(result) => format!("{}", result),

@@ -10,7 +10,7 @@ fn main() {
         let day = &args[1];
         DAY_TO_SOLVE_FUNCTIONS
             .get(day)
-            .expect(&format!("Could not find {}", day))
+            .unwrap_or_else(|| panic!("Could not find {}", day))
             .iter()
             .for_each(|f| {
                 let result = f();
@@ -19,7 +19,6 @@ fn main() {
                     Err(error) => println!("{}", error),
                 }
             });
-        return;
     } else {
         run_cli(&DAY_TO_SOLVE_FUNCTIONS);
     }

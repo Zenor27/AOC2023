@@ -9,17 +9,17 @@ fn tester(
     expected: u32,
 ) -> AdventOfCodeResult {
     let path = format!("src/aoc2023/day{day}/input{part}.txt");
-    let input =
-        fs::read_to_string(&path).expect(&format!("Something went wrong reading the file {path}"));
+    let input = fs::read_to_string(&path)
+        .unwrap_or_else(|_| panic!("Something went wrong reading the file {path}"));
     let value = func(input);
-    return if value == expected {
+    if value == expected {
         Ok(AdventOfCodeOk { result: value })
     } else {
         Err(AdventOfCodeMismatch {
             expected,
             actual: value,
         })
-    };
+    }
 }
 
 pub fn test_part1(day: u32, func: fn(input: String) -> u32, expected: u32) -> AdventOfCodeResult {

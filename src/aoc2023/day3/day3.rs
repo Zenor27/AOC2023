@@ -8,7 +8,7 @@ fn get_number_to_positions(input: String) -> HashMap<u32, Vec<Position>> {
         if number == 0 {
             return;
         }
-        let indexes = number_to_positions.entry(number).or_insert(Vec::new());
+        let indexes = number_to_positions.entry(number).or_default();
         let number_len = number.to_string().len();
         for i in 0..number_len {
             indexes.push((x - number_len + i, y));
@@ -18,7 +18,7 @@ fn get_number_to_positions(input: String) -> HashMap<u32, Vec<Position>> {
         let mut number = 0;
         let mut x = 0;
         for c in line.chars() {
-            if c.is_digit(10) {
+            if c.is_ascii_digit() {
                 number = number * 10 + c.to_digit(10).unwrap();
             } else {
                 add_number_positions(number, x, y);
@@ -29,10 +29,10 @@ fn get_number_to_positions(input: String) -> HashMap<u32, Vec<Position>> {
         add_number_positions(number, x, y);
     });
 
-    return number_to_positions;
+    number_to_positions
 }
 
-fn is_adjacent(positions: &Vec<Position>, x: usize, y: usize) -> bool {
+fn is_adjacent(positions: &[Position], x: usize, y: usize) -> bool {
     [
         (x - 1, y - 1),
         (x, y - 1),
@@ -49,7 +49,7 @@ fn is_adjacent(positions: &Vec<Position>, x: usize, y: usize) -> bool {
 
 fn get_adjacent_numbers(
     number_to_positions: &HashMap<u32, Vec<Position>>,
-    symbols_positions: &Vec<Position>,
+    symbols_positions: &[Position],
 ) -> Vec<Vec<u32>> {
     symbols_positions
         .iter()
@@ -74,7 +74,7 @@ pub(super) fn _solve1(input: String) -> u32 {
         .enumerate()
         .flat_map(|(y, line)| {
             line.chars().enumerate().filter_map(move |(x, c)| {
-                if c != '.' && !c.is_digit(10) {
+                if c != '.' && !c.is_ascii_digit() {
                     Some((x, y))
                 } else {
                     None
@@ -120,8 +120,8 @@ pub(super) fn _solve2(input: String) -> u32 {
         })
         .collect();
 
-    return get_adjacent_numbers(&number_to_positions, &gear_positions)
+    get_adjacent_numbers(&number_to_positions, &gear_positions)
         .into_iter()
         .map(|numbers| numbers.into_iter().reduce(|a, b| a * b).unwrap())
-        .sum();
+        .sum()
 }

@@ -31,7 +31,7 @@ fn get_color_count(set: &str, color: &str) -> u32 {
     set.split(&format!(" {}", color))
         .next()
         .unwrap()
-        .split(" ")
+        .split(' ')
         .last()
         .unwrap()
         .parse::<u32>()
@@ -39,10 +39,10 @@ fn get_color_count(set: &str, color: &str) -> u32 {
 }
 
 fn get_game_id(line: &str) -> u32 {
-    line.split(":")
+    line.split(':')
         .next()
         .unwrap()
-        .split(" ")
+        .split(' ')
         .last()
         .unwrap()
         .parse::<u32>()
@@ -58,11 +58,11 @@ fn get_sets(line: &str) -> Vec<Set> {
             let blue_count = get_color_count(set, "blue");
             let red_count = get_color_count(set, "red");
             let green_count = get_color_count(set, "green");
-            return Set {
+            Set {
                 blue: blue_count,
                 red: red_count,
                 green: green_count,
-            };
+            }
         })
         .collect::<Vec<Set>>()
 }
@@ -73,9 +73,8 @@ fn parse_games(input: String) -> Vec<Game> {
         .map(|line| {
             let id = get_game_id(line);
             let sets = get_sets(line);
-            let game = Game { id, sets };
 
-            return game;
+            Game { id, sets }
         })
         .collect::<Vec<Game>>();
 }
@@ -84,14 +83,14 @@ pub(super) fn _solve1(input: String) -> u32 {
     return parse_games(input)
         .iter()
         .filter_map(|game| {
-            return if game.max_blue_count() <= 14
+            if game.max_blue_count() <= 14
                 && game.max_green_count() <= 13
                 && game.max_red_count() <= 12
             {
                 Some(game.id)
             } else {
                 None
-            };
+            }
         })
         .sum::<u32>();
 }
