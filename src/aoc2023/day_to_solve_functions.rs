@@ -7,4 +7,5 @@ pub type DayToSolveFunctions = Map<&'static str, [fn() -> aoc2023::result::Adven
 pub static DAY_TO_SOLVE_FUNCTIONS: DayToSolveFunctions = phf_map! {
     "day1" => [aoc2023::day1::solve1, aoc2023::day1::solve2],
     "day2" => [aoc2023::day2::solve1, aoc2023::day2::solve2],
+    "day3" => [aoc2023::day3::solve1, aoc2023::day3::solve2],
 };
